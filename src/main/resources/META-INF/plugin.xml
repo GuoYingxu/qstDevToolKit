@@ -1,0 +1,134 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <!-- Unique identifier of the plugin. It should be FQN. It cannot be changed between the plugin versions. -->
+    <id>com.itshixun.qstDevToolKit</id>
+
+    <!-- Public plugin name should be written in Title Case.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-name -->
+    <name>QstDevToolKit</name>
+
+    <!-- A displayed Vendor name or Organization ID displayed on the Plugins Page. -->
+    <vendor email="guoyx@itshixun.com" url="https://www.eduplus.net">itshixun</vendor>
+
+    <!-- Description of the plugin displayed on the Plugin Page and IDE Plugin Manager.
+         Simple HTML elements (text formatting, paragraphs, and lists) can be added inside of <![CDATA[ ]]> tag.
+         Guidelines: https://plugins.jetbrains.com/docs/marketplace/plugin-overview-page.html#plugin-description -->
+    <description><![CDATA[
+    青软内部开发工具插件<br>
+    <em>内部工具，识别springboot 项目的api,并关联提示前端项目的调用情况。部分功能与RestToolKit 插件重复；显示软开云任务。安装后请重启idea</em>
+    features：
+    <ul>
+    <li>1.显示spring boot RestApi 被前端项目调用详情</li>
+    <li>2.获取华为云任务列表</li>
+    </ul>
+    配置说明:
+    <ul>
+    <li>1.配置华为云ak/sk</li>
+    <li>2.配置华为云项目过滤条件，如果不填。默认全部。项目id用逗号(半角英文)分割</li>
+    <li>3.配置任务处理人条件,用户id用逗号分割<li>
+    <li>4.配置api 服务接口: https://gyx.qstcloud.net/api </li>
+    </ul>
+  ]]></description>
+
+    <!-- Product and plugin compatibility requirements.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.java</depends>
+
+    <projectListeners>
+        <listener class="com.itshixun.qstdevtoolkit.listener.ProjectChangeListener"
+            topic="com.intellij.openapi.project.ProjectManagerListener"
+        />
+        <listener class="com.itshixun.qstdevtoolkit.listener.RestApiServiceWindowChangeListener"
+                  topic="com.intellij.openapi.wm.ex.ToolWindowManagerListener"
+                  />
+    </projectListeners>
+    <!-- Extension points defined by the plugin.
+         Read more: https://plugins.jetbrains.com/docs/intellij/plugin-extension-points.html -->
+    <extensions defaultExtensionNs="com.intellij">
+        <notificationGroup id="Custom Notification Group"
+                           displayType="BALLOON" />
+        <projectConfigurable groupId="tools"
+                             displayName="QstToolkitConfiguration"
+                             instance="com.itshixun.qstdevtoolkit.config.QstToolkitConfig"
+                             id="com.itshixun.qstdevtoolkit.config.QstToolkitConfig"
+                             />
+
+        <toolWindow factoryClass="com.itshixun.qstdevtoolkit.window.RestApiServiceWindowFactory"
+                    id="RestApiService"
+                    anchor="right"
+                    icon="/icons/api-tree-container.svg"
+                    doNotActivateOnStart="true"
+
+        />
+        <toolWindow id="HwTasks" factoryClass="com.itshixun.qstdevtoolkit.window.TaskListWindowFactory"
+                    anchor="right" icon="AllIcons.General.ReaderMode"/>
+        <applicationService serviceImplementation="com.itshixun.qstdevtoolkit.service.RestApiModuleSettingState"/>
+
+<!--        <codeInsight.lineMarkerProvider language="JAVA"-->
+<!--                                        implementationClass="com.itshixun.qstdevtoolkit.marker.RestApiMarkerProvider"-->
+<!--                                        />-->
+        <codeInsight.inlayProvider language="JAVA"
+                                   implementationClass="com.itshixun.qstdevtoolkit.hints.ApiUsageInlayHintsProvider" />
+    </extensions>
+    <actions>
+
+        <action id="qstDevToolKit.RefreshApiServices"
+                class="com.itshixun.qstdevtoolkit.action.RefreshRestApiServiceAction"
+                text="Refresh Project RestApiServices"
+                icon="AllIcons.Actions.Refresh"
+                description="Refresh  restApiServiceStructure">
+        </action>
+<!--        <action id="qstDevToolKit.RefreshHwTasks"-->
+<!--                class="com.itshixun.qstdevtoolkit.action.RefreshHwTasksAction"-->
+<!--                text="Refresh Project Tasks"-->
+<!--                icon="AllIcons.Actions.Refresh"-->
+<!--                description="Refresh  Tasks">-->
+<!--        </action>-->
+        <action id="qstDevToolkit.ShowApiUsage"
+                class="com.itshixun.qstdevtoolkit.action.ShowApiUsageAction"
+                text="Show API Usage"
+                description="Show api usage" />
+        <!-- url navigation -->
+        <action id="qstDevToolKit.FindRestApiService"
+                class="com.itshixun.qstdevtoolkit.action.FindRestApiServiceAction"
+                text="FindRestApiService" description="Find and  go to Service"
+                icon="AllIcons.Actions.Search">
+            <add-to-group group-id="GoToTargetEx" anchor="first"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl BACK_SLASH"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl alt B"/>
+        </action>
+        <group id="qstDevToolkit.RestApiServiceToolbar">
+            <reference id="qstDevToolKit.RefreshApiServices"/>
+            <reference id="qstDevToolKit.FindRestApiService"/>
+        </group>
+<!--        <group id="qstDevToolkit.HwTasksToolbar">-->
+<!--            <reference id="qstDevToolKit.RefreshHwTasks"/>-->
+<!--        </group>-->
+
+
+        <!-- tree menu: serviceItemMenu -->
+        <group id="qstDevToolkit.RestApiServiceMenu">
+            <action id="qstDevToolKit.RestApiServiceMenu"
+                    class="com.itshixun.qstdevtoolkit.action.GoToSourceAction"
+                    text="Jump to RestApiService"
+                    icon="AllIcons.Actions.ShortcutFilter"/>
+        </group>
+
+        <group id="qstDevToolkit.RestApiProjectMenu">
+<!--            <action id="qstDevToolkit.RestApiProjectRefresh"-->
+<!--                    class="com.itshixun.qstdevtoolkit.action.RefreshProjectApiAction"-->
+<!--                    text="refresh project restApiServices"-->
+<!--                    icon="AllIcons.Actions.Refresh"></action>-->
+            <action id="qstDevToolkit.RestApiProjectConfig"
+                    class="com.itshixun.qstdevtoolkit.action.ProjectConfigAction"
+                    text="Config Project"
+                    icon="AllIcons.Actions.InlayGear"/>
+            <action id="qstDevToolkit.UploadApi"
+                    class="com.itshixun.qstdevtoolkit.action.UploadModuleApiAction"
+                    text="Upload Module API"
+                    icon="AllIcons.Actions.Upload" />
+        </group>
+
+    </actions>
+</idea-plugin>
