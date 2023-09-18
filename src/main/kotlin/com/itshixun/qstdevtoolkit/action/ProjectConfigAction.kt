@@ -8,6 +8,7 @@ import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.ui.dsl.builder.panel
 import com.itshixun.qstdevtoolkit.service.RestApiModuleSettingState
 import com.itshixun.qstdevtoolkit.service.RestApiService
+import com.itshixun.qstdevtoolkit.structure.ProjectNode
 import com.itshixun.qstdevtoolkit.utils.RestApiServiceDataKey
 import java.awt.BorderLayout
 import java.awt.event.FocusEvent
@@ -26,7 +27,10 @@ class ProjectConfigAction:AnAction() {
         if (moduleNodes.isNullOrEmpty()) {
             return
         }
-        popUpSettings(moduleNodes[0].name,e.project!!)
+        val node = moduleNodes[0]
+        if(node is ProjectNode) {
+            popUpSettings(node.project.moduleName,e.project!!)
+        }
     }
     private fun popUpSettings(moduleName:String, project:Project) {
         val configPanel = panel {
